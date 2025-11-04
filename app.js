@@ -1,7 +1,8 @@
 // كويز مكوَّن من 5 أسئلة — الأسئلة تم إدخالها يدوياً
+// تم تعديل مدة كل سؤال إلى 10 ثواني
 // بعد النجاح الكامل: تشغيل confetti ثم عرض رسالة داخل نفس الصفحة:
 // "اللغز التالي يوجد في الكنيسة"
-// بقيت كل الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، عدّاد، شريط تقدم، دعم لوحة المفاتيح، confetti.
+// باقي الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، شريط تقدم، دعم لوحة المفاتيح، confetti.
 
 const QUESTIONS = [
   {
@@ -35,7 +36,7 @@ const STATE = {
   index: 0,
   selected: null,
   timer: null,
-  timeLeft: 20,
+  timeLeft: 10, // <-- مدة السؤال الآن 10 ثواني
   total: QUESTIONS.length
 };
 
@@ -51,7 +52,7 @@ const resultSection = document.getElementById('result');
 const resultTitle = document.getElementById('result-title');
 const resultMsg = document.getElementById('result-msg');
 const retryBtn = document.getElementById('retry-btn');
-const nextQuizBtn = document.getElementById('next-quiz-btn'); // لم يعد مستخدماً لكنه يبقى موجوداً بالـ DOM
+const nextQuizBtn = document.getElementById('next-quiz-btn'); // يبقى في DOM لكن مخفي
 const confettiCanvas = document.getElementById('confetti-canvas');
 
 function startQuiz(){
@@ -93,7 +94,8 @@ function renderQuestion(){
     choicesEl.appendChild(btn);
   });
 
-  STATE.timeLeft = 20;
+  // اضبط الوقت لكل سؤال إلى 10 ثواني
+  STATE.timeLeft = 10;
   updateTimerDisplay();
   STATE.timer = setInterval(() => {
     STATE.timeLeft--;
@@ -127,9 +129,7 @@ retryBtn.addEventListener('click', () => {
 });
 
 if (nextQuizBtn) {
-  // إخفاءه افتراضياً إن كان موجوداً
   nextQuizBtn.hidden = true;
-  // لا نستخدمه حالياً لأنك طلبت عدم الانتقال لصفحة جديدة
   nextQuizBtn.addEventListener('click', () => {});
 }
 
@@ -181,7 +181,7 @@ function updateTimerDisplay(){
   const mm = Math.floor(STATE.timeLeft / 60).toString().padStart(2,'0');
   const ss = (STATE.timeLeft % 60).toString().padStart(2,'0');
   timerEl.textContent = `${mm}:${ss}`;
-  timerEl.style.color = STATE.timeLeft <= 5 ? 'var(--danger)' : 'var(--muted)';
+  timerEl.style.color = STATE.timeLeft <= 3 ? 'var(--danger)' : 'var(--muted)'; // تحذير عند 3 ثواني أو أقل
 }
 
 function clearTimer(){
@@ -196,13 +196,12 @@ function showResult(success, message){
 
   if(success){
     resultTitle.textContent = "مبروك! أنهيت الكويز بنجاح 🎉";
-    // بدل التحويل: نعرض الرسالة المطلوبة داخل نفس صفحة النتائج
+    // عرض النص المطلوب داخل نفس صفحة النتائج
     resultMsg.textContent = "اللغز التالي يوجد في الكنيسة";
     resultSection.classList.remove('failure');
     // شغّل الكونفيتي للعرض البصري ثم أترك المستخدم على شاشة النتيجة
     fireConfetti(() => {
-      // بعد انتهاء الكونفيتي لا يتم تحويل — نكتفي بعرض النص كما طلبت
-      // يمكن إضافة سلوك إضافي هنا إن رغبت لاحقاً
+      // لا تحويل — العرض فقط
     });
   } else {
     resultTitle.textContent = "تمت إعادة الكويز";
