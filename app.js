@@ -1,5 +1,6 @@
-// كويز مكوَّن من 5 أسئلة — الآن الأسئلة تُحمَّل يدوياً من عندك
-// بقيت كل الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، عدّاد، شريط تقدم، دعم لوحة المفاتيح، confetti، وزر الانتقال للكويز اللي بعده.
+// كويز مكوَّن من 5 أسئلة — الأسئلة تم إدخالها يدوياً
+// بعد النجاح الكامل: تشغيل confetti ثم تحويل تلقائي إلى صفحة thankyou.html
+// بقيت كل الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، عدّاد، شريط تقدم، دعم لوحة المفاتيح، confetti.
 
 const QUESTIONS = [
   {
@@ -37,6 +38,11 @@ const STATE = {
   total: QUESTIONS.length
 };
 
+// رابط الصفحة التي نذهب إليها بعد النجاح (ملف محلي)
+const successRedirectUrl = "thankyou.html";
+// إذا أردت فتح الرابط في نافذة جديدة بدل نفسه، اضبط إلى true
+const successOpenInNewTab = false;
+
 // DOM
 const qIndexEl = document.getElementById('q-index');
 const timerEl = document.getElementById('timer');
@@ -51,10 +57,6 @@ const resultMsg = document.getElementById('result-msg');
 const retryBtn = document.getElementById('retry-btn');
 const nextQuizBtn = document.getElementById('next-quiz-btn');
 const confettiCanvas = document.getElementById('confetti-canvas');
-
-// رابط الكويز التالي (قابل للتعديل)
-const nextQuizUrl = "https://www.google.com";
-const nextQuizOpenInNewTab = false;
 
 function startQuiz(){
   STATE.index = 0;
@@ -129,11 +131,11 @@ retryBtn.addEventListener('click', () => {
 });
 
 nextQuizBtn.addEventListener('click', () => {
-  if(!nextQuizUrl) return;
-  if(nextQuizOpenInNewTab){
-    window.open(nextQuizUrl, '_blank', 'noopener');
+  if(!successRedirectUrl) return;
+  if(successOpenInNewTab){
+    window.open(successRedirectUrl, '_blank', 'noopener');
   } else {
-    window.location.href = nextQuizUrl;
+    window.location.href = successRedirectUrl;
   }
 });
 
@@ -200,10 +202,16 @@ function showResult(success, message){
 
   if(success){
     resultTitle.textContent = "مبروك! أنهيت الكويز بنجاح 🎉";
-    resultMsg.textContent = "أجبت على جميع الأسئلة بشكل صحيح.";
+    resultMsg.textContent = "أجبت على جميع الأسئلة بشكل صحيح. سيتم تحويلك إلى اللغز التالي الآن...";
     resultSection.classList.remove('failure');
+    // شغّل الكونفيتي ثم حوّل المستخدم تلقائياً إلى صفحة الشكر/اللغز
     fireConfetti(() => {
-      nextQuizBtn.hidden = false;
+      // تحويل تلقائي بعد الكونفيتي
+      if(successOpenInNewTab){
+        window.open(successRedirectUrl, '_blank', 'noopener');
+      } else {
+        window.location.href = successRedirectUrl;
+      }
     });
   } else {
     resultTitle.textContent = "تمت إعادة الكويز";
