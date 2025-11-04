@@ -1,5 +1,6 @@
 // كويز مكوَّن من 5 أسئلة — الأسئلة تم إدخالها يدوياً
-// بعد النجاح الكامل: تشغيل confetti ثم تحويل تلقائي إلى صفحة thankyou.html
+// بعد النجاح الكامل: تشغيل confetti ثم عرض رسالة داخل نفس الصفحة:
+// "اللغز التالي يوجد في الكنيسة"
 // بقيت كل الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، عدّاد، شريط تقدم، دعم لوحة المفاتيح، confetti.
 
 const QUESTIONS = [
@@ -38,11 +39,6 @@ const STATE = {
   total: QUESTIONS.length
 };
 
-// رابط الصفحة التي نذهب إليها بعد النجاح (ملف محلي)
-const successRedirectUrl = "thankyou.html";
-// إذا أردت فتح الرابط في نافذة جديدة بدل نفسه، اضبط إلى true
-const successOpenInNewTab = false;
-
 // DOM
 const qIndexEl = document.getElementById('q-index');
 const timerEl = document.getElementById('timer');
@@ -55,7 +51,7 @@ const resultSection = document.getElementById('result');
 const resultTitle = document.getElementById('result-title');
 const resultMsg = document.getElementById('result-msg');
 const retryBtn = document.getElementById('retry-btn');
-const nextQuizBtn = document.getElementById('next-quiz-btn');
+const nextQuizBtn = document.getElementById('next-quiz-btn'); // لم يعد مستخدماً لكنه يبقى موجوداً بالـ DOM
 const confettiCanvas = document.getElementById('confetti-canvas');
 
 function startQuiz(){
@@ -64,7 +60,7 @@ function startQuiz(){
   resultSection.classList.add('hidden');
   document.getElementById('quiz-card').classList.remove('hidden');
   restartBtn.hidden = true;
-  nextQuizBtn.hidden = true;
+  if (nextQuizBtn) nextQuizBtn.hidden = true;
   renderQuestion();
 }
 
@@ -130,14 +126,12 @@ retryBtn.addEventListener('click', () => {
   startQuiz();
 });
 
-nextQuizBtn.addEventListener('click', () => {
-  if(!successRedirectUrl) return;
-  if(successOpenInNewTab){
-    window.open(successRedirectUrl, '_blank', 'noopener');
-  } else {
-    window.location.href = successRedirectUrl;
-  }
-});
+if (nextQuizBtn) {
+  // إخفاءه افتراضياً إن كان موجوداً
+  nextQuizBtn.hidden = true;
+  // لا نستخدمه حالياً لأنك طلبت عدم الانتقال لصفحة جديدة
+  nextQuizBtn.addEventListener('click', () => {});
+}
 
 function checkAnswer(selected){
   const correct = QUESTIONS[STATE.index].answer;
@@ -198,20 +192,17 @@ function showResult(success, message){
   clearTimer();
   document.getElementById('quiz-card').classList.add('hidden');
   resultSection.classList.remove('hidden');
-  nextQuizBtn.hidden = true;
+  if (nextQuizBtn) nextQuizBtn.hidden = true;
 
   if(success){
     resultTitle.textContent = "مبروك! أنهيت الكويز بنجاح 🎉";
-    resultMsg.textContent = "أجبت على جميع الأسئلة بشكل صحيح. سيتم تحويلك إلى اللغز التالي الآن...";
+    // بدل التحويل: نعرض الرسالة المطلوبة داخل نفس صفحة النتائج
+    resultMsg.textContent = "اللغز التالي يوجد في الكنيسة";
     resultSection.classList.remove('failure');
-    // شغّل الكونفيتي ثم حوّل المستخدم تلقائياً إلى صفحة الشكر/اللغز
+    // شغّل الكونفيتي للعرض البصري ثم أترك المستخدم على شاشة النتيجة
     fireConfetti(() => {
-      // تحويل تلقائي بعد الكونفيتي
-      if(successOpenInNewTab){
-        window.open(successRedirectUrl, '_blank', 'noopener');
-      } else {
-        window.location.href = successRedirectUrl;
-      }
+      // بعد انتهاء الكونفيتي لا يتم تحويل — نكتفي بعرض النص كما طلبت
+      // يمكن إضافة سلوك إضافي هنا إن رغبت لاحقاً
     });
   } else {
     resultTitle.textContent = "تمت إعادة الكويز";
