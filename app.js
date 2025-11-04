@@ -1,31 +1,30 @@
-// كويز تفاعلي 5 أسئلة - نسق الاختيارات زاهي و"ghost" - مضاف زر "الانتقال للكويز اللي بعده"
-// عند النجاح: تشغيل confetti ثم إظهار زر "الانتقال للكويز اللي بعده" (يأخذ المستخدم إلى nextQuizUrl)
-// يمكنك تعديل nextQuizUrl لتوجيه الزر إلى أي رابط آخر.
+// كويز مكوَّن من 5 أسئلة — الآن الأسئلة تُحمَّل يدوياً من عندك
+// بقيت كل الوظائف: إعادة من الأول عند أي إجابة خاطئة أو انتهاء الوقت، عدّاد، شريط تقدم، دعم لوحة المفاتيح، confetti، وزر الانتقال للكويز اللي بعده.
 
 const QUESTIONS = [
   {
-    q: "ما هي عاصمة مصر؟",
-    choices: ["الإسكندرية", "القاهرة", "أسوان", "الأقصر"],
-    answer: 1
+    q: "عدد تلاميذ المسيح ؟",
+    choices: ["5", "7", "11", "12"],
+    answer: 3
   },
   {
-    q: "أيهما يعتبر سنة كبيسة؟",
-    choices: ["2021", "2024", "2023", "2019"],
-    answer: 1
+    q: "كم قفة مملوءة فضلت عن الخمس خبزات والسمكتين في المعجزة الثانية؟",
+    choices: ["5", "4", "10", "12"],
+    answer: 3
   },
   {
-    q: "ما هو أقرب كوكب للأرض من حيث الحجم؟",
-    choices: ["المريخ", "عطارد", "الزهرة", "المشتري"],
+    q: "بحر مشهور في العهد القديم",
+    choices: ["بحر قزوين", "البحر الاحمر", "بحر طبرية", "بحر عماد"],
     answer: 2
   },
   {
-    q: "ما لغة البرمجة التي تُستخدم لبناء صفحات الويب الأساسية؟",
-    choices: ["Python", "C++", "HTML", "Java"],
-    answer: 2
+    q: "اين قال المسيح انا هو الله فأعبدوني",
+    choices: ["متى 5", "يوحنا 9:15", "لوقا 14", "لوقا 29"],
+    answer: 0
   },
   {
-    q: "أي بنك جينوم البشري انتهى تقريبا في أي عام؟",
-    choices: ["2003", "1990", "2010", "1985"],
+    q: "ما المقصود بالولادة الثانية",
+    choices: ["المعمودية", "الموت الثاني", "القيامة", "الحياة"],
     answer: 0
   }
 ];
@@ -37,11 +36,6 @@ const STATE = {
   timeLeft: 20,
   total: QUESTIONS.length
 };
-
-// تعديل بسيط: الرابط الذي سيؤدي إليه زر "الانتقال للكويز اللي بعده"
-const nextQuizUrl = "https://www.google.com";
-// إذا أردت فتح الرابط في نافذة جديدة بدل نفس النافذة، عدّل nextQuizOpenInNewTab = true
-const nextQuizOpenInNewTab = false;
 
 // DOM
 const qIndexEl = document.getElementById('q-index');
@@ -58,13 +52,16 @@ const retryBtn = document.getElementById('retry-btn');
 const nextQuizBtn = document.getElementById('next-quiz-btn');
 const confettiCanvas = document.getElementById('confetti-canvas');
 
+// رابط الكويز التالي (قابل للتعديل)
+const nextQuizUrl = "https://www.google.com";
+const nextQuizOpenInNewTab = false;
+
 function startQuiz(){
   STATE.index = 0;
   STATE.selected = null;
   resultSection.classList.add('hidden');
   document.getElementById('quiz-card').classList.remove('hidden');
   restartBtn.hidden = true;
-  // Hide next-quiz button at start
   nextQuizBtn.hidden = true;
   renderQuestion();
 }
@@ -79,16 +76,14 @@ function renderQuestion(){
   questionArea.innerHTML = `<h2>${escapeHtml(qObj.q)}</h2>`;
   choicesEl.innerHTML = "";
 
-  // نوزّع ألوان زاهية على الاختيارات عبر فهرس دائري
   qObj.choices.forEach((c, i) => {
     const btn = document.createElement('button');
     btn.className = `choice color-${i % 4}`;
     btn.setAttribute('role','listitem');
 
-    // badge صغير ملون لإضاءة الاختيارات بدون أي ترتيب/أرقام
     const badge = document.createElement('span');
     badge.className = 'badge';
-    // النص فقط (بدون تلميح الكيبورد داخل الاختيار)
+
     const txt = document.createElement('span');
     txt.className = 'choice-text';
     txt.innerHTML = escapeHtml(c);
@@ -107,7 +102,6 @@ function renderQuestion(){
     updateTimerDisplay();
     if(STATE.timeLeft <= 0){
       clearTimer();
-      // Timeout treated as خطأ -> إعادة من البداية
       showWrongFeedback(null, true);
     }
   }, 1000);
@@ -202,20 +196,14 @@ function showResult(success, message){
   clearTimer();
   document.getElementById('quiz-card').classList.add('hidden');
   resultSection.classList.remove('hidden');
-
-  // Hide next-quiz button by default then show it only on success
   nextQuizBtn.hidden = true;
 
   if(success){
     resultTitle.textContent = "مبروك! أنهيت الكويز بنجاح 🎉";
     resultMsg.textContent = "أجبت على جميع الأسئلة بشكل صحيح.";
     resultSection.classList.remove('failure');
-    // شغّل الكونفيتي ثم أظهر زر "الانتقال للكويز اللي بعده" بعد انتهاء الكونفيتي
     fireConfetti(() => {
-      // بعد الكونفيتي: إظهار زر الانتقال
       nextQuizBtn.hidden = false;
-      // optionally يمكنك أيضاً تحويل تلقائياً: 
-      // window.location.href = nextQuizUrl;
     });
   } else {
     resultTitle.textContent = "تمت إعادة الكويز";
@@ -266,7 +254,6 @@ function fireConfetti(doneCb){
     if(t < maxT) requestAnimationFrame(raf);
     else {
       ctx.clearRect(0,0,W,H);
-      // مهلة صغيرة إضافية لراحة العرض قبل إظهار الزر أو التحويل
       setTimeout(() => {
         if(typeof doneCb === 'function') doneCb();
       }, 400);
